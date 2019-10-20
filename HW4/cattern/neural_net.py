@@ -80,29 +80,32 @@ class TwoLayerNet(object):
     ###########################################################################
     #                              END OF TODO#1                                #
     #############################################################################
-    scores = X.dot(W1) + b1
-    scores = np.where(scores > 0, scores, 0)
-    scores = scores.dot(W2) + b2
+    y1 = X.dot(W1) + b1
+    relu_y1 = np.where(y1 > 0, scores, 0)
+    scores = relu_y1.dot(W2) + b2
     
     # If the targets are not given then jump out, we're done
     if y is None:
       return scores
 
     # Compute the loss
-    loss = list()
+    loss = 0
     #############################################################################
     # TODO#2: Finish the forward pass, and compute the loss. This should include#
     # both the data loss and L2 regularization for W1 and W2. Store the result  #
     # in the variable loss, which should be a scalar. Use the Softmax           #
     # classifier loss.                                                          #
     #############################################################################
-    for label in y:
-        category = np.zeros(b2.shape, dtype=np.int)
-        category[label] = 1
-        loss.append(category)
-    print('category : ', loss)
-    loss = np.sum((category - scores)**2) / 2 + np.sum(scores**2, axis=(0,1)) / 2 * reg
-      
+    softmax_scores = np.exp(scores)
+    total_expo_scores = np.sum(softmax_scores, axis=1)
+    for row, expo_scores in enumerate(total_expo_scores):
+        softmax_scores[row] /= expo_scores
+    
+    # categorical crossentropy
+    for index, label in enumerate(y):
+        loss -= np.log(softmax_scores[index, label])
+    loss /= y.shape[0]
+    loss += reg * 0.5 * (np.sum(W1**2, axis=(0,1)) + np.sum(W2**2, axis=(0,1))) 
         
     #############################################################################
     #                              END OF TODO#2                                #
@@ -116,7 +119,18 @@ class TwoLayerNet(object):
     # grads['W1'] should store the gradient on W1, and be a matrix of same size #
     # don't forget about the regularization term                                #
     #############################################################################
-
+    grads['softmax'] = 0
+    for index, label in enumerate(y):
+        grads['softmax'] -= 1.0 / softmax_scores[index, label]
+    grads['b2'] = 0
+    grads['W2'] = relu_y1
+    if !relu_y1:
+        grads['relu'] = 0
+    else:
+        grads['relu'] = 1
+    grads['b1'] = 0
+    grads['W1'] = X 
+    print(grads)
     #############################################################################
     #                              END OF TODO#3                                #
     #############################################################################
