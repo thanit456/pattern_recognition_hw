@@ -119,24 +119,33 @@ class TwoLayerNet(object):
     # grads['W1'] should store the gradient on W1, and be a matrix of same size #
     # don't forget about the regularization term                                #
     #############################################################################
-    categories = list()
-    for label in y:
-        category = np.zeros(b2.shape)
-        category[label] = 1
-        categories.append(category)
+    softmax_scores[:N, y] -= 1
+    softmax_scores /= N
     
-    for row in range(softmax_scores.shape[0]):        
-        for col in range(softmax_scores.shape[1]):
-            categories[row, col] /= softmax_scores[row, col]
-    print('eiei : ',categories)
+    # gradient of W2 
+    dW2 = relu_y1.T.dot(softmax_scores)
+    # gradient of b2
+    db2 = softmax_scores.sum(axis=1)
+    # gradient of W1
+    dW1 = softmax_scores.dot(W2.T)
+    drelu = dW1 * (relu_y1 > 0)
+    dW1 = X.T.dot(drelu)
     
-    grads['b2'] = b2
-    temp = np.array( [ 0.2099691, -0.1431905, -0.0667786])
-    grads['W2'] = W2
-#     grads['W2'] = grads['b2'] * W2
-#     grads_relu = np.where(grads['W2'] > 0, grads['W2'], 0)
-#     grads['b1'] = grads_relu
-#     grads['W1'] = W1.dot(grads['b1'])
+    # gradient of b1
+    db1 = np.sum(drelu, axis=0)
+    
+    # L2 Regularization
+    dW1 += 2 * reg * W1
+    dW2 += 2 * reg * W2
+    
+    grads['W1'] = dW1
+    grads['b1'] = db1
+    grads['W2'] = dW2
+    grads['b2'] = db2
+    
+  
+    
+
     #############################################################################
     #                              END OF TODO#3                                #
     #############################################################################
