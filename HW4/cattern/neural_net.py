@@ -81,7 +81,7 @@ class TwoLayerNet(object):
     #                              END OF TODO#1                                #
     #############################################################################
     y1 = X.dot(W1) + b1
-    relu_y1 = np.where(y1 > 0, scores, 0)
+    relu_y1 = np.where(y1 > 0, y1, 0)
     scores = relu_y1.dot(W2) + b2
     
     # If the targets are not given then jump out, we're done
@@ -119,18 +119,24 @@ class TwoLayerNet(object):
     # grads['W1'] should store the gradient on W1, and be a matrix of same size #
     # don't forget about the regularization term                                #
     #############################################################################
-    grads['softmax'] = 0
-    for index, label in enumerate(y):
-        grads['softmax'] -= 1.0 / softmax_scores[index, label]
-    grads['b2'] = 0
-    grads['W2'] = relu_y1
-    if !relu_y1:
-        grads['relu'] = 0
-    else:
-        grads['relu'] = 1
-    grads['b1'] = 0
-    grads['W1'] = X 
-    print(grads)
+    categories = list()
+    for label in y:
+        category = np.zeros(b2.shape)
+        category[label] = 1
+        categories.append(category)
+    
+    for row in range(softmax_scores.shape[0]):        
+        for col in range(softmax_scores.shape[1]):
+            categories[row, col] /= softmax_scores[row, col]
+    print('eiei : ',categories)
+    
+    grads['b2'] = b2
+    temp = np.array( [ 0.2099691, -0.1431905, -0.0667786])
+    grads['W2'] = W2
+#     grads['W2'] = grads['b2'] * W2
+#     grads_relu = np.where(grads['W2'] > 0, grads['W2'], 0)
+#     grads['b1'] = grads_relu
+#     grads['W1'] = W1.dot(grads['b1'])
     #############################################################################
     #                              END OF TODO#3                                #
     #############################################################################
